@@ -149,11 +149,15 @@ class SourceMapExtractor(object):
 
 
     def _parse_sourcemap(self, target, is_str=False):
+        self.map_name = "src"
+        
         map_data = ""
         if is_str is False:
             if os.path.isfile(target):
                 with open(target, 'r', encoding='utf-8', errors='ignore') as f:
                     map_data = f.read()
+                    
+                self.map_name = os.path.splitext( os.path.basename( target ) )[0]
         else:
             map_data = target
 
@@ -189,6 +193,7 @@ class SourceMapExtractor(object):
     def _get_sanitised_file_path(self, sourcePath):
         """Sanitise webpack paths for separators/relative paths"""
         sourcePath = sourcePath.replace("webpack:///", "")
+        sourcePath = sourcePath.replace("../../", "../")
         exts = sourcePath.split(" ")
 
         if exts[0] == "external":
@@ -199,7 +204,8 @@ class SourceMapExtractor(object):
         if path[:2] == './':
             path = path[2:]
         if path[:3] == '../':
-            path = 'parent_dir/' + path[3:]
+            # path = 'parent_dir/' + path[3:]
+            path = self.map_name + '/' + path[3:]
         if path[:1] == '.':
             path = ""
 
